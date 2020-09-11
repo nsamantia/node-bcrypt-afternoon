@@ -18,4 +18,28 @@ const bcrypt = require('bcryptjs');
           req.session.user = { isAdmin: user.is_admin, username: user.username, id: user.id };
           return res.status(201).send(req.session.user);
         },
-      };
+
+        login: async (req, res) => {
+            const {username, password} =req.body
+            const foundUser = await req.app.get('db').get_user([username])
+            const user =foundUser[0]
+                if(!user){
+                    return res.status(401).send('USer not found')
+                }
+            const isAuthenticated = bcrypt.compareSync(password, user.hash)
+            if(!isAuthenticated){
+                req.status(403).send('Incorrect password')
+            }
+            res.session.user = { isAdmin: user.is_admin, username: user.username, id: user.id}
+            return res.send(req.session.user)
+
+            },
+
+            logout: async (req, res)=>{
+                req.session.destroy()
+                res.sendStatus(200)
+            }
+            
+
+        }
+      
